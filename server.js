@@ -15,6 +15,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// io.on("connection", (socket) => {
+//   console.log("Socket connected:", socket.id);
+// });
+
 app.use(express.json({ limit: "200kb" }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
@@ -494,6 +498,7 @@ app.get("/api/rankings", requireAdmin, (req, res) => {
 });
 
 io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
   socket.emit("state_update", buildStatePayload());
   socket.emit("rankings_update", computeRankings());
 });
