@@ -48,6 +48,8 @@ const enableAudio = document.getElementById("enableAudio");
 const toggleMusic = document.getElementById("toggleMusic");
 const musicVolume = document.getElementById("musicVolume");
 const sfxVolume = document.getElementById("sfxVolume");
+const audioSpeed = document.getElementById("audioSpeed");
+const audioSpeedLabel = document.getElementById("audioSpeedLabel");
 const bgMusic = document.getElementById("bgMusic");
 const sfxSubmit = document.getElementById("sfxSubmit");
 const sfxOpen = document.getElementById("sfxOpen");
@@ -64,6 +66,7 @@ let audioEnabled = false;
 let wantsMusic = true;
 let bgMusicFallback = null;
 let toggleMusicBusy = false;
+let savedAudioSpeed = Number(localStorage.getItem("audioSpeed") || 1);
 
 function setActiveTab(tabName) {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -85,10 +88,29 @@ if (adminTabs) {
 function setAudioVolume() {
   const musicVol = Number(musicVolume?.value || 0.4);
   const sfxVol = Number(sfxVolume?.value || 0.7);
-  if (bgMusic) bgMusic.volume = musicVol;
+  const speed = Number(audioSpeed?.value || 1);
+  
+  if (bgMusic) {
+    bgMusic.volume = musicVol;
+    bgMusic.playbackRate = speed;
+  }
+  
   [sfxSubmit, sfxOpen, sfxClose, sfxReveal, sfxSet].forEach((sfx) => {
-    if (sfx) sfx.volume = sfxVol;
+    if (sfx) {
+      sfx.volume = sfxVol;
+      sfx.playbackRate = speed;
+    }
   });
+  
+  if (audioSpeedLabel) {
+    audioSpeedLabel.textContent = `Speed: ${speed}x`;
+  }
+  
+  // Save audio speed to localStorage
+  localStorage.setItem("audioSpeed", speed);
+  
+  // Broadcast audio speed to participants
+  socket.emit('audio_speed_change', { speed });
 }
 
 function setAudioStatus(text) {
@@ -237,6 +259,7 @@ if (toggleMusic) {
 
 musicVolume?.addEventListener("input", setAudioVolume);
 sfxVolume?.addEventListener("input", setAudioVolume);
+audioSpeed?.addEventListener("input", setAudioVolume);
 
 document.addEventListener(
   "click",
@@ -317,6 +340,12 @@ verifyAudioFiles();
 
 // Initialize with tabs hidden
 setAuth(false);
+
+// Set initial audio speed from localStorage
+if (audioSpeed) {
+  audioSpeed.value = savedAudioSpeed;
+  setAudioVolume();
+}
 
 function setAuth(ok) {
   authStatus.textContent = ok ? "Verified" : "Not verified";

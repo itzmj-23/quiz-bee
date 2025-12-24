@@ -7,6 +7,7 @@ const answerArea = document.getElementById("answerArea");
 const submitAnswer = document.getElementById("submitAnswer");
 const submitStatus = document.getElementById("submitStatus");
 const openStatus = document.getElementById("openStatus");
+const rankingsBody = document.getElementById("rankingsBody");
 
 const token = window.location.pathname.split("/").pop();
 const timerDisplay = document.getElementById("timerDisplay");
@@ -17,6 +18,7 @@ let lastState = { is_open: false, reveal_answer: false };
 let timerInterval = null;
 let questionOpenedAt = null;
 let countdownAudio = null;
+let currentAudioSpeed = 1; // Will be updated from admin
 
 function setBanner(text, type = "") {
   banner.textContent = text;
@@ -45,6 +47,28 @@ async function loadState() {
   const state = await fetch("/api/state").then((r) => r.json());
   currentQuestion = state.question;
   updateQuestion(state);
+  
+  // Load initial rankings
+  const rankings = await fetch("/api/rankings").then((r) => r.json());
+  updateRankings(rankings);
+}
+
+function updateRankings(rankings) {
+  if (!rankingsBody) return;
+  rankingsBody.innerHTML = "";
+  if (!rankings || rankings.length === 0) {
+    rankingsBody.innerHTML = '<tr><td colspan="3" class="muted">No teams yet</td></tr>';
+    return;
+  }
+  rankings.forEach((team, idx) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${team.name}</td>
+      <td>${team.points}</td>
+    `;
+    rankingsBody.appendChild(row);
+  });
 }
 
 function updateQuestion(state) {
@@ -113,6 +137,7 @@ function startTimer(limitSeconds) {
   if (audioFile) {
     countdownAudio = new Audio(audioFile);
     countdownAudio.volume = 0.7;
+    countdownAudio.playbackRate = currentAudioSpeed;
     countdownAudio.play().catch(() => {
       // Audio play blocked, ignore
     });
@@ -244,15 +269,29 @@ submitAnswer.addEventListener("click", async () => {
 socket.on("state_update", (state) => {
   if (currentQuestion && state.question && currentQuestion.id !== state.question.id) {
     submitted = false;
+  updateRankings(rankings // Update playback rate if countdown audio is currently playing
+    if (countdownAudio && !countdownAudio.paused) {
+      countdownAudio.playbackRate = currentAudioSpeed;
+    }
   }
-  updateQuestion(state);
 });
 
-socket.on("question_reset", (payload) => {
-  if (currentQuestion && payload.question_id === currentQuestion.id) {
-    submitted = false;
-    updateSubmitStatus(lastState);
+socket.on("rankings_update", (rankings) => {
+  if (!rankingsBody) return;
+  rankingsBody.innerHTML = "";
+  if (!rankings || rankings.length === 0) {
+    rankingsBody.innerHTML = '<tr><td colspan="3" class="muted">No teams yet</td></tr>';
+    return;
   }
+  rankings.forEach((team, idx) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${team.name}</td>
+      <td>${team.points}</td>
+    `;
+    rankingsBody.appendChild(row);
+  });
 });
 
 joinTeam();

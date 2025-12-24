@@ -4,14 +4,12 @@ Simple, real-time Quiz Bee game with an Admin/Game Master page and participant p
 
 ## Requirements
 
-- Node.js 18+ (or 20+ recommended)
+- Node.js 18+
 - npm
-- PM2 (for production deployment)
 
 ## Setup
 
 ```bash
-cd D:\Code\quiz-bee-mvp
 npm install
 ```
 
@@ -29,163 +27,138 @@ Open the admin UI:
 http://localhost:3001/admin
 ```
 
-## Deploy to Laravel Forge with PM2
+## Deploy to Railway
 
 ### Prerequisites
 
-1. **Server Setup** - Ensure you have a server provisioned on Laravel Forge
-2. **Node.js** - Make sure Node.js 18+ is installed on your server
-3. **PM2** - Install PM2 globally on your server
+1. **Railway Account** - Sign up at [railway.app](https://railway.app)
+2. **Git Repository** - Your code should be in a Git repository (GitHub, GitLab, etc.)
 
 ### Deployment Steps
 
-#### 1. Server Preparation
+#### 1. Create New Project
 
-SSH into your server and install PM2 globally:
+1. Log in to Railway
+2. Click **New Project**
+3. Select **Deploy from GitHub repo**
+4. Choose your quiz-bee repository
+5. Railway will automatically detect it's a Node.js project
 
-```bash
-npm install -g pm2
-```
+#### 2. Configure Environment Variables
 
-#### 2. Clone Repository
+In your Railway project dashboard:
 
-On your server, navigate to your site directory and clone the repository:
-
-```bash
-cd /home/forge/your-site-domain.com
-git clone https://github.com/yourusername/quiz-bee-mvp.git .
-```
-
-#### 3. Install Dependencies
-
-```bash
-npm install --production
-```
-
-#### 4. Environment Configuration
-
-Create a `.env` file with your production settings:
-
-```bash
-nano .env
-```
-
-Add the following:
+1. Go to **Variables** tab
+2. Add the following environment variables:
 
 ```env
-NODE_ENV=production
-PORT=3001
 ADMIN_PASSWORD=your_secure_admin_password
-DB_PATH=/home/forge/your-site-domain.com/quizbee.db
+NODE_ENV=production
 ```
 
-#### 5. Setup Nginx Reverse Proxy
+**Note**: Railway automatically provides the `PORT` environment variable, so you don't need to set it.
 
-In Laravel Forge, go to your site's Nginx configuration and add:
+#### 3. Deploy
 
-```nginx
-location / {
-    proxy_pass http://localhost:3001;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection 'upgrade';
-    proxy_set_header Host $host;
-    proxy_cache_bypass $http_upgrade;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
+Railway will automatically deploy your application. The deployment process:
 
-#### 6. Start with PM2
+1. Detects Node.js from `package.json`
+2. Runs `npm install`
+3. Starts the app using the `start` script from `package.json`
+4. Provides a public URL (e.g., `your-app.up.railway.app`)
+
+#### 4. Database Persistence
+
+Railway provides persistent storage:
+
+1. Go to your service settings
+2. Add a **Volume** if you want persistent database storage
+3. Mount path: `/app` (or specify `DB_PATH=/app/quizbee.db` in environment variables)
+
+Alternatively, Railway ephemeral storage will work but data will be lost on redeploy. For production, use a volume or migrate to a proper database.
+
+#### 5. Custom Domain (Optional)
+
+1. Go to **Settings** tab
+2. Click **Generate Domain** for a Railway subdomain
+3. Or add your custom domain under **Custom Domains**
+
+### Continuous Deployment
+
+Railway automatically redeploys when you push to your main branch:
 
 ```bash
-npm run pm2:start
+git add .
+git commit -m "Update quiz app"
+git push origin main
 ```
 
-Or directly:
-
-```bash
-pm2 start ecosystem.config.js --env production
-```
-
-#### 7. Enable PM2 Startup Script
-
-Save PM2 process list and configure it to restart on system reboot:
-
-```bash
-pm2 save
-pm2 startup
-```
-
-Follow the instructions from the `pm2 startup` command.
-
-### PM2 Management Commands
-
-```bash
-# Start the application
-npm run pm2:start
-
-# Stop the application
-npm run pm2:stop
-
-# Restart the application
-npm run pm2:restart
-
-# Reload without downtime
-npm run pm2:reload
-
-# View logs
-npm run pm2:logs
-
-# Monitor processes
-npm run pm2:monitor
-
-# Delete from PM2
-npm run pm2:delete
-```
-
-### Deployment Script for Laravel Forge
-
-Add this to your Forge deployment script:
-
-```bash
-cd /home/forge/your-site-domain.com
-
-# Pull latest changes
-git pull origin main
-
-# Install dependencies
-npm install --production
-
-# Reload PM2 application
-pm2 reload quiz-bee-mvp
-
-# Or restart if reload doesn't work
-# pm2 restart quiz-bee-mvp
-```
-
-### SSL Configuration
-
-In Laravel Forge:
-1. Go to your site's SSL tab
-2. Enable LetsEncrypt SSL certificate
-3. The reverse proxy will automatically handle HTTPS
+Railway will detect the changes and redeploy automatically.
 
 ### Monitoring
 
-Check application status:
+In Railway dashboard:
 
+- **Deployments** - View deployment history and logs
+- **Metrics** - Monitor CPU, memory, and network usage
+- **Logs** - Real-time application logs
+
+View logs in real-time:
 ```bash
-pm2 status
-pm2 logs quiz-bee-mvp
-pm2 monit
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login
+railway login
+
+# Link to your project
+railway link
+
+# View logs
+railway logs
 ```
 
-View detailed info:
+### Railway CLI Deployment
+
+Alternative deployment method using Railway CLI:
 
 ```bash
-pm2 info quiz-bee-mvp
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Initialize and link project
+railway init
+
+# Deploy
+railway up
+```
+
+### Configuration
+
+Environment variables for Railway:
+
+- `ADMIN_PASSWORD` - Admin authentication password (required)
+- `NODE_ENV` - Automatically set to production
+- `PORT` - Automatically provided by Railway
+- `DB_PATH` - Optional, for custom database location
+
+### Database Backup on Railway
+
+Since Railway can use ephemeral storage by default:
+
+1. **Option 1**: Add a volume for persistent storage
+2. **Option 2**: Set up automated backups using Railway's scheduled tasks
+3. **Option 3**: Migrate to PostgreSQL (Railway provides free PostgreSQL)
+
+For SQLite with volume:
+```bash
+# Add DB_PATH environment variable
+DB_PATH=/data/quizbee.db
+
+# Mount volume to /data in Railway settings
 ```
 
 ## How to Use
@@ -200,9 +173,9 @@ pm2 info quiz-bee-mvp
 
 ## Configuration
 
-Environment variables (set in `.env` file):
+Environment variables:
 
-- `PORT` - Server port (default: 3001)
+- `PORT` - Server port (default: 3001, Railway auto-provides this)
 - `ADMIN_PASSWORD` - Admin authentication password (required)
 - `DB_PATH` - SQLite database path (default: ./quizbee.db)
 - `NODE_ENV` - Environment (development/production)
@@ -238,33 +211,30 @@ Consider setting up a cron job for automated backups.
 - **Real-time**: Socket.IO
 - **Database**: SQLite (better-sqlite3)
 - **Frontend**: Vanilla JavaScript
-- **Process Manager**: PM2
-- **Deployment**: Laravel Forge
+- **Deployment**: Railway
 
 ## Troubleshooting
 
-### Port Already in Use
+### Port Already in Use (Local Development)
 
 ```bash
-# Find process using port 3001
-lsof -i :3001
+# PowerShell - Find process using port 3001
+Get-NetTCPConnection -LocalPort 3001 | Select-Object -Property OwningProcess
 # Kill the process
-kill -9 <PID>
+Stop-Process -Id <PID> -Force
 ```
 
-### PM2 Not Restarting
+### Railway Deployment Issues
 
-```bash
-pm2 delete quiz-bee-mvp
-pm2 start ecosystem.config.js --env production
-pm2 save
-```
+- Check the **Deployments** tab for build logs
+- Verify environment variables in **Variables** tab
+- Check **Logs** for runtime errors
 
-### Check Logs
+### Database Issues on Railway
 
-```bash
-pm2 logs quiz-bee-mvp --lines 100
-```
+If data is lost after redeploy:
+- Add a volume for persistent storage
+- Or migrate to Railway's PostgreSQL service
 
 ## License
 

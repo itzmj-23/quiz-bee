@@ -457,12 +457,6 @@ app.post("/api/game/open", requireAdmin, (req, res) => {
     clearTimeout(autoCloseTimeout);
     autoCloseTimeout = null;
   }
-  // Clear auto-close timeout if manually closing
-  if (autoCloseTimeout) {
-    clearTimeout(autoCloseTimeout);
-    autoCloseTimeout = null;
-  }
-  
   
   db.prepare("UPDATE game_state SET is_open = 1, opened_at = ?, reveal_answer = 0").run(nowMs());
   
@@ -487,6 +481,12 @@ app.post("/api/game/open", requireAdmin, (req, res) => {
 });
 
 app.post("/api/game/close", requireAdmin, (req, res) => {
+  // Clear auto-close timeout if manually closing
+  if (autoCloseTimeout) {
+    clearTimeout(autoCloseTimeout);
+    autoCloseTimeout = null;
+  }
+  
   gradeCurrentQuestion();
   db.prepare("UPDATE game_state SET is_open = 0").run();
   res.json({ ok: true });
@@ -559,6 +559,11 @@ io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
   socket.emit("state_update", buildStatePayload());
   socket.emit("rankings_update", computeRankings());
+  
+  socket.on('audio_speed_change', (data) => {
+    // Broadcast to all participants
+    io.emit('audio_speed_update', data);
+  });
 });
 
 server.listen(PORT, () => {
