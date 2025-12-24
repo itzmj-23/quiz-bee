@@ -3,6 +3,9 @@ const socket = io();
 const adminPasswordInput = document.getElementById("adminPassword");
 const savePasswordBtn = document.getElementById("savePassword");
 const authStatus = document.getElementById("authStatus");
+const loginForm = document.getElementById("loginForm");
+const loggedInView = document.getElementById("loggedInView");
+const logoutBtn = document.getElementById("logoutBtn");
 
 const qType = document.getElementById("qType");
 const qPrompt = document.getElementById("qPrompt");
@@ -319,6 +322,10 @@ function setAuth(ok) {
   authStatus.textContent = ok ? "Verified" : "Not verified";
   authStatus.classList.toggle("closed", !ok);
   
+  // Toggle login form and logged in view
+  if (loginForm) loginForm.style.display = ok ? "none" : "flex";
+  if (loggedInView) loggedInView.style.display = ok ? "flex" : "none";
+  
   // Show/hide the entire content area based on authentication
   const wrapContainer = document.querySelector(".wrap");
   
@@ -332,6 +339,15 @@ savePasswordBtn.addEventListener("click", () => {
   localStorage.setItem("adminPassword", adminPassword);
   loadAll();
 });
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    adminPassword = "";
+    adminPasswordInput.value = "";
+    localStorage.removeItem("adminPassword");
+    setAuth(false);
+  });
+}
 
 qType.addEventListener("change", () => {
   choiceBlock.style.display = qType.value === "multiple_choice" ? "block" : "none";

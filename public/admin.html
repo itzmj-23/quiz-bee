@@ -10,11 +10,16 @@
   <body>
     <header>
       <h1>Quiz Bee — Game Master</h1>
-      <div class="flex-row">
-        <label for="adminPassword">Admin Password</label>
-        <input id="adminPassword" type="password" placeholder="Set admin password" />
-        <button id="savePassword">Save</button>
-        <span id="authStatus" class="status-pill closed">Not verified</span>
+      <div id="authSection" class="flex-row">
+        <div id="loginForm">
+          <label for="adminPassword">Admin Password</label>
+          <input id="adminPassword" type="password" placeholder="Enter admin password" />
+          <button id="savePassword">Login</button>
+        </div>
+        <div id="loggedInView" style="display: none;">
+          <span id="authStatus" class="status-pill">Verified</span>
+          <button id="logoutBtn" class="ghost">Logout</button>
+        </div>
       </div>
     </header>
     <div class="wrap">
