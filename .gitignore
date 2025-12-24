@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Logs
 npm-debug.log*
@@ -17,6 +18,8 @@ logs
 # Build output
 dist/
 build/
+.vercel
+.output
 
 # Coverage
 coverage/
@@ -39,6 +42,14 @@ Thumbs.db
 pids
 *.pid
 *.seed
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Vercel
+.vercel
 
 # Optional: lock files (comment out if you want them tracked)
 # package-lock.json
