@@ -13,13 +13,19 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, "quizbee.db");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ['websocket', 'polling']
+});
 
 let autoCloseTimeout = null;
 
-// io.on("connection", (socket) => {
-//   console.log("Socket connected:", socket.id);
-// });
+io.on("connection", (socket) => {
+  console.log("Socket connected:", socket.id);
+});
 
 app.use(express.json({ limit: "200kb" }));
 app.use(cookieParser());

@@ -269,10 +269,12 @@ submitAnswer.addEventListener("click", async () => {
 socket.on("state_update", (state) => {
   if (currentQuestion && state.question && currentQuestion.id !== state.question.id) {
     submitted = false;
-  updateRankings(rankings // Update playback rate if countdown audio is currently playing
-    if (countdownAudio && !countdownAudio.paused) {
-      countdownAudio.playbackRate = currentAudioSpeed;
-    }
+  }
+  updateQuestion(state);
+  
+  // Update playback rate if countdown audio is currently playing
+  if (countdownAudio && !countdownAudio.paused) {
+    countdownAudio.playbackRate = currentAudioSpeed;
   }
 });
 
