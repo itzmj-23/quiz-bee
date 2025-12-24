@@ -23,7 +23,19 @@ let autoCloseTimeout = null;
 
 app.use(express.json({ limit: "200kb" }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, "public")));
+
+// Set proper MIME types for static files
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    } else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    } else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html');
+    }
+  }
+}));
 
 const db = new Database(DB_PATH);
 
