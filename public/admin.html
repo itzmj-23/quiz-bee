@@ -25,15 +25,147 @@
     <div class="wrap">
       <div class="card">
         <div class="tabs" id="adminTabs">
-          <button class="tab-btn active" data-tab="questions">Questions</button>
+          <button class="tab-btn active" data-tab="home">Home</button>
+          <button class="tab-btn" data-tab="game-control">Settings</button>
+          <button class="tab-btn" data-tab="questions">Questions</button>
           <button class="tab-btn" data-tab="teams">Teams</button>
           <button class="tab-btn" data-tab="rankings">Rankings</button>
-          <button class="tab-btn" data-tab="controls">Game Controls</button>
-          <button class="tab-btn" data-tab="submissions">Submissions</button>
         </div>
       </div>
 
-      <section class="tab-panel active" id="tab-questions">
+      <section class="tab-panel active" id="tab-home">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Game Controls</h2>
+            <label for="currentQuestion">Current Question</label>
+            <div class="tabs" id="currentQuestionTabs" style="margin-bottom: 10px;">
+              <button class="tab-btn active" data-qfilter="all">All</button>
+              <button class="tab-btn" data-qfilter="text">Text</button>
+              <button class="tab-btn" data-qfilter="multiple_choice">Multiple Choice</button>
+              <button class="tab-btn" data-qfilter="rebus_puzzle">Rebus Puzzle</button>
+              <button class="tab-btn" data-qfilter="movie_title">Movie Title</button>
+            </div>
+            <div class="custom-select-wrapper">
+              <div class="custom-select" id="currentQuestionSelect">
+                <div class="custom-select-trigger">
+                  <span>Select a question...</span>
+                </div>
+                <div class="custom-options" id="currentQuestionOptions"></div>
+              </div>
+            </div>
+            <select id="currentQuestion" style="display: none;"></select>
+            <div class="flex-row">
+              <button id="setCurrent">Set Current</button>
+              <button id="openQuestion">Open Question</button>
+              <button id="closeQuestion" class="danger">Close Question</button>
+              <button id="revealAnswer" class="secondary">Reveal Answer</button>
+            </div>
+            <div class="flex-row" id="movieDifficultyControls" style="display: none; margin-top: 10px;">
+              <button id="lowerDifficulty" class="secondary">⬇️ Lower Difficulty</button>
+              <button id="customizePieces" class="secondary" style="display: none;">🎨 Customize Pieces</button>
+              <span id="currentDifficultyLabel" class="muted" style="margin-left: 10px; align-self: center;"></span>
+            </div>
+            <div id="pieceCustomizerModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 40px;">
+              <div class="card" style="max-width: 600px; margin: 0 auto; max-height: 90vh; overflow-y: auto;">
+                <h3>Customize Puzzle Pieces</h3>
+                <p class="muted">Click pieces to toggle visibility. Changes apply immediately.</p>
+                <div class="piece-selector-grid" id="liveCustomGrid"></div>
+                <div class="flex-row" style="margin-top: 20px;">
+                  <button id="applyCustomPieces">Apply Changes</button>
+                  <button id="cancelCustomPieces" class="ghost">Cancel</button>
+                </div>
+              </div>
+            </div>
+            <div class="banner" id="stateBanner">Waiting for state...</div>
+          </div>
+          
+          <div class="card">
+            <h2>Scoring Settings</h2>
+            <label>Points Distribution Mode</label>
+            <div style="margin: 15px 0;">
+              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
+                <input type="radio" name="pointsMode" id="pointsModeEqual" value="equal" checked style="margin-right: 10px;">
+                <strong>Equal Points</strong>
+                <br>
+                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">All correct answers receive the same points</span>
+              </label>
+              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                <input type="radio" name="pointsMode" id="pointsModeRanked" value="ranked" style="margin-right: 10px;">
+                <strong>Ranked (Fastest First)</strong>
+                <br>
+                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">1st place gets full points, each subsequent submission gets 1 point less (minimum 1)</span>
+              </label>
+            </div>
+            <button id="saveSettings">Save Settings</button>
+          </div>
+
+          <div class="card">
+            <h2>Submissions (Current Question)</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Answer</th>
+                  <th>Correct</th>
+                  <th>Time</th>
+                  <th>Points</th>
+                  <th>Override</th>
+                </tr>
+              </thead>
+              <tbody id="submissionBody"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h2>Rankings</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Team</th>
+                  <th>Points</th>
+                  <th>Total Time</th>
+                </tr>
+              </thead>
+              <tbody id="rankingsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-game-control">
+        <div class="grid-2">
+          <div class="card">
+            <h2>Manual Overrides</h2>
+            <label for="adjustTeam">Adjust Team Points</label>
+            <select id="adjustTeam"></select>
+            <input id="adjustDelta" type="number" placeholder="+/- points" />
+            <button id="applyAdjust">Apply</button>
+            <label for="resetQuestion">Reset Question Submissions</label>
+            <select id="resetQuestion"></select>
+            <button id="resetSubmissions" class="ghost">Reset Submissions</button>
+          </div>
+
+          <div class="card">
+            <h2>Audio</h2>
+            <p class="muted">Add MP3 files in <code>public/audio</code>. See README for filenames.</p>
+            <div class="flex-row">
+              <button id="enableAudio" class="ghost">Enable Audio</button>
+              <button id="toggleMusic">Play Music</button>
+            </div>
+            <p id="audioStatus" class="muted">Audio: idle</p>
+            <label for="musicVolume">Music Volume</label>
+            <input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.4" />
+            <label for="sfxVolume">SFX Volume</label>
+            <input id="sfxVolume" type="range" min="0" max="1" step="0.05" value="1" />
+            <label for="audioSpeed">Audio Speed</label>
+            <input id="audioSpeed" type="range" min="0.75" max="1.5" step="0.05" value="1" />
+            <p class="muted" id="audioSpeedLabel">Speed: 1x</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-panel" id="tab-questions">
         <div class="grid-2">
           <div class="card">
             <h2 id="questionFormTitle">Create Question</h2>
@@ -41,16 +173,99 @@
             <select id="qType">
               <option value="text">Text</option>
               <option value="multiple_choice">Multiple Choice</option>
+              <option value="rebus_puzzle">Rebus Puzzle Game</option>
+              <option value="movie_title">Guess the Movie Title</option>
             </select>
-            <label for="qPrompt">Prompt</label>
-            <textarea id="qPrompt" placeholder="Question prompt"></textarea>
+            <div id="textPromptBlock">
+              <label for="qPrompt">Prompt</label>
+              <textarea id="qPrompt" placeholder="Question prompt"></textarea>
+            </div>
+            <div id="rebusImageBlock" style="display: none;">
+              <label for="rebusImage">Rebus Puzzle Image (This is the question)</label>
+              <div id="rebusDropZone" style="border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; cursor: pointer; transition: all 0.3s;">
+                <p class="muted" style="margin: 0;">📁 Drag & drop an image here or click to browse</p>
+                <p class="muted" style="margin: 5px 0 0 0; font-size: 0.85em;">Supports: JPG, PNG, GIF, WebP</p>
+              </div>
+              <input id="rebusFileInput" type="file" accept="image/*" style="display: none;" />
+              <div id="rebusImagePreview" style="display: none; margin-bottom: 10px; text-align: center;">
+                <img id="rebusPreviewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px;" />
+                <br>
+                <button type="button" id="generateRebusAnswers" class="secondary" style="margin-top: 10px;">✨ Generate Answers with AI</button>
+                <button type="button" id="removeRebusImage" class="ghost" style="margin-top: 10px;">Remove Image</button>
+                <p id="generateStatus" class="muted" style="margin-top: 5px;"></p>
+              </div>
+              <label for="rebusImage">Or paste image URL</label>
+              <input id="rebusImage" type="text" placeholder="Enter image URL (optional)" />
+              <p class="muted">You can either upload a local image or paste a URL</p>
+            </div>
+            <div id="moviePosterBlock" style="display: none;">
+              <label for="moviePoster">Movie Poster Image</label>
+              <div id="movieDropZone" style="border: 2px dashed #ccc; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 10px; cursor: pointer; transition: all 0.3s;">
+                <p class="muted" style="margin: 0;">📁 Drag & drop movie poster here or click to browse</p>
+                <p class="muted" style="margin: 5px 0 0 0; font-size: 0.85em;">Supports: JPG, PNG, GIF, WebP</p>
+              </div>
+              <input id="movieFileInput" type="file" accept="image/*" style="display: none;" />
+              <div id="movieImagePreview" style="display: none; margin-bottom: 10px; text-align: center;">
+                <img id="moviePreviewImg" style="max-width: 100%; max-height: 300px; border-radius: 8px;" />
+                <br>
+                <button type="button" id="removeMovieImage" class="ghost" style="margin-top: 10px;">Remove Image</button>
+              </div>
+              <label for="moviePosterUrl">Or paste image URL</label>
+              <input id="moviePosterUrl" type="text" placeholder="Enter image URL (optional)" />
+              <p class="muted">You can either upload a local image or paste a URL</p>
+              
+              <label>Piece Selection Mode</label>
+              <div style="margin-bottom: 10px;">
+                <label style="display: inline-flex; align-items: center; margin-right: 20px; cursor: pointer;">
+                  <input type="radio" name="pieceMode" id="pieceModePreselect" value="preselect" style="margin-right: 8px;">
+                  <span>Pre-Select Pieces (Plan ahead)</span>
+                </label>
+                <label style="display: inline-flex; align-items: center; cursor: pointer;">
+                  <input type="radio" name="pieceMode" id="pieceModeDynamic" value="dynamic" checked style="margin-right: 8px;">
+                  <span>Dynamic Selection (Choose in-game)</span>
+                </label>
+              </div>
+              
+              <div id="preselectPiecesBlock" style="display: none;">
+                <label>Select Pieces for Each Difficulty</label>
+                <p class="muted" style="margin: 5px 0;">Click on pieces to toggle them. Pieces accumulate as difficulty lowers.</p>
+                
+                <div style="margin-bottom: 15px;">
+                  <strong>Expert (1 piece) - 15 points:</strong>
+                  <div class="piece-selector-grid" id="expertPieceGrid"></div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                  <strong>Hard (3 pieces) - 10 points:</strong>
+                  <p class="muted" style="margin: 5px 0; font-size: 0.9em;">Includes Expert piece + 2 more</p>
+                  <div class="piece-selector-grid" id="hardPieceGrid"></div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                  <strong>Medium (7 pieces) - 5 points:</strong>
+                  <p class="muted" style="margin: 5px 0; font-size: 0.9em;">Includes Hard pieces + 4 more</p>
+                  <div class="piece-selector-grid" id="mediumPieceGrid"></div>
+                </div>
+                
+                <p class="muted">Easy (all 16 pieces) - 2 points</p>
+              </div>
+            </div>
+            <div id="difficultyBlock" style="display: none;">
+              <label for="difficulty">Difficulty Level</label>
+              <select id="difficulty">
+                <option value="expert">Expert (1 piece visible - 15 points)</option>
+                <option value="hard">Hard (3 pieces visible - 10 points)</option>
+                <option value="medium">Medium (7 pieces visible - 5 points)</option>
+                <option value="easy">Easy (All pieces visible - 2 points)</option>
+              </select>
+            </div>
             <div id="choiceBlock">
-              <label>Choices (A-D) - Enter text or image URL</label>
+              <label id="choiceLabel">Choices (A-D) - Enter text or image URL</label>
               <input id="choiceA" placeholder="Choice A (text or image URL)" />
               <input id="choiceB" placeholder="Choice B (text or image URL)" />
               <input id="choiceC" placeholder="Choice C (text or image URL)" />
               <input id="choiceD" placeholder="Choice D (text or image URL)" />
-              <p class="muted">For images, paste a URL (e.g., https://example.com/image.jpg)</p>
+              <p class="muted" id="choiceHint">For images, paste a URL (e.g., https://example.com/image.jpg)</p>
             </div>
             <label for="qAnswer">Correct Answer</label>
             <input id="qAnswer" placeholder="Correct answer" />
@@ -61,6 +276,10 @@
               <option value="">None</option>
               <option value="10">10 seconds</option>
               <option value="20">20 seconds</option>
+              <option value="30">30 seconds</option>
+              <option value="40">40 seconds</option>
+              <option value="50">50 seconds</option>
+              <option value="60">60 seconds</option>
             </select>
             <div class="flex-row">
               <button id="createQuestion">Create Question</button>
@@ -70,6 +289,13 @@
 
           <div class="card">
             <h2>Questions</h2>
+            <div class="tabs" id="questionTypeTabs">
+              <button class="tab-btn active" data-qtype="all">All</button>
+              <button class="tab-btn" data-qtype="text">Text</button>
+              <button class="tab-btn" data-qtype="multiple_choice">Multiple Choice</button>
+              <button class="tab-btn" data-qtype="rebus_puzzle">Rebus Puzzle</button>
+              <button class="tab-btn" data-qtype="movie_title">Movie Title</button>
+            </div>
             <table>
               <thead>
                 <tr>
@@ -114,7 +340,7 @@
                   <th>#</th>
                   <th>Team</th>
                   <th>Points</th>
-                  <th>Total Time (ms)</th>
+                  <th>Total Time</th>
                 </tr>
               </thead>
               <tbody id="rankingsBody"></tbody>
@@ -126,77 +352,13 @@
               <thead>
                 <tr>
                   <th>Team</th>
-                  <th>Time (ms)</th>
+                  <th>Time</th>
                   <th>Submitted At</th>
                 </tr>
               </thead>
               <tbody id="fastestBody"></tbody>
             </table>
           </div>
-        </div>
-      </section>
-
-      <section class="tab-panel" id="tab-controls">
-        <div class="grid-2">
-          <div class="card">
-            <h2>Game Controls</h2>
-            <label for="currentQuestion">Current Question</label>
-            <select id="currentQuestion"></select>
-            <div class="flex-row">
-              <button id="setCurrent">Set Current</button>
-              <button id="openQuestion">Open Question</button>
-              <button id="closeQuestion" class="danger">Close Question</button>
-              <button id="revealAnswer" class="secondary">Reveal Answer</button>
-            </div>
-            <div class="banner" id="stateBanner">Waiting for state...</div>
-          </div>
-
-          <div class="card">
-            <h2>Manual Overrides</h2>
-            <label for="adjustTeam">Adjust Team Points</label>
-            <select id="adjustTeam"></select>
-            <input id="adjustDelta" type="number" placeholder="+/- points" />
-            <button id="applyAdjust">Apply</button>
-            <label for="resetQuestion">Reset Question Submissions</label>
-            <select id="resetQuestion"></select>
-            <button id="resetSubmissions" class="ghost">Reset Submissions</button>
-          </div>
-
-          <div class="card">
-            <h2>Audio</h2>
-            <p class="muted">Add MP3 files in <code>public/audio</code>. See README for filenames.</p>
-            <div class="flex-row">
-              <button id="enableAudio" class="ghost">Enable Audio</button>
-              <button id="toggleMusic">Play Music</button>
-            </div>
-            <p id="audioStatus" class="muted">Audio: idle</p>
-            <label for="musicVolume">Music Volume</label>
-            <input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.4" />
-            <label for="sfxVolume">SFX Volume</label>
-            <input id="sfxVolume" type="range" min="0" max="1" step="0.05" value="1" />
-            <label for="audioSpeed">Audio Speed</label>
-            <input id="audioSpeed" type="range" min="0.75" max="1.5" step="0.05" value="1" />
-            <p class="muted" id="audioSpeedLabel">Speed: 1x</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="tab-panel" id="tab-submissions">
-        <div class="card">
-          <h2>Submissions (Current Question)</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Answer</th>
-                <th>Correct</th>
-                <th>Time (ms)</th>
-                <th>Points</th>
-                <th>Override</th>
-              </tr>
-            </thead>
-            <tbody id="submissionBody"></tbody>
-          </table>
         </div>
       </section>
     </div>
