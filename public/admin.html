@@ -79,25 +79,7 @@
             <div class="banner" id="stateBanner">Waiting for state...</div>
           </div>
           
-          <div class="card">
-            <h2>Scoring Settings</h2>
-            <label>Points Distribution Mode</label>
-            <div style="margin: 15px 0;">
-              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
-                <input type="radio" name="pointsMode" id="pointsModeEqual" value="equal" checked style="margin-right: 10px;">
-                <strong>Equal Points</strong>
-                <br>
-                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">All correct answers receive the same points</span>
-              </label>
-              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-                <input type="radio" name="pointsMode" id="pointsModeRanked" value="ranked" style="margin-right: 10px;">
-                <strong>Ranked (Fastest First)</strong>
-                <br>
-                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">1st place gets full points, each subsequent submission gets 1 point less (minimum 1)</span>
-              </label>
-            </div>
-            <button id="saveSettings">Save Settings</button>
-          </div>
+
 
           <div class="card">
             <h2>Submissions (Current Question)</h2>
@@ -161,6 +143,26 @@
             <label for="audioSpeed">Audio Speed</label>
             <input id="audioSpeed" type="range" min="0.75" max="1.5" step="0.05" value="1" />
             <p class="muted" id="audioSpeedLabel">Speed: 1x</p>
+          </div>
+
+          <div class="card">
+            <h2>Scoring Settings</h2>
+            <label>Points Distribution Mode</label>
+            <div style="margin: 15px 0;">
+              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;">
+                <input type="radio" name="pointsMode" id="pointsModeEqual" value="equal" checked style="margin-right: 10px;">
+                <strong>Equal Points</strong>
+                <br>
+                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">All correct answers receive the same points</span>
+              </label>
+              <label style="display: block; padding: 12px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                <input type="radio" name="pointsMode" id="pointsModeRanked" value="ranked" style="margin-right: 10px;">
+                <strong>Ranked (Fastest First)</strong>
+                <br>
+                <span class="muted" style="margin-left: 24px; font-size: 0.9em;">1st place gets full points, each subsequent submission gets 1 point less (minimum 1)</span>
+              </label>
+            </div>
+            <button id="saveSettings">Save Settings</button>
           </div>
         </div>
       </section>
@@ -290,16 +292,19 @@
           <div class="card">
             <h2>Questions</h2>
             <div class="tabs" id="questionTypeTabs">
-              <button class="tab-btn active" data-qtype="all">All</button>
-              <button class="tab-btn" data-qtype="text">Text</button>
-              <button class="tab-btn" data-qtype="multiple_choice">Multiple Choice</button>
-              <button class="tab-btn" data-qtype="rebus_puzzle">Rebus Puzzle</button>
-              <button class="tab-btn" data-qtype="movie_title">Movie Title</button>
+              <button class="tab-btn active" data-qtype="all">All <span class="count-badge">(0)</span></button>
+              <button class="tab-btn" data-qtype="text">Text <span class="count-badge">(0)</span></button>
+              <button class="tab-btn" data-qtype="multiple_choice">Multiple Choice <span class="count-badge">(0)</span></button>
+              <button class="tab-btn" data-qtype="rebus_puzzle">Rebus Puzzle <span class="count-badge">(0)</span></button>
+              <button class="tab-btn" data-qtype="movie_title">Movie Title <span class="count-badge">(0)</span></button>
+            </div>
+            <div class="flex-row" style="justify-content: flex-end; margin-bottom: 10px;">
+              <button id="deleteAllQuestions" class="danger">Delete All Questions</button>
             </div>
             <table>
               <thead>
                 <tr>
-                  <th>ID</th>
+                  <th>#</th>
                   <th>Prompt</th>
                   <th>Type</th>
                   <th>Points</th>

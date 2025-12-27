@@ -546,7 +546,37 @@ app.put("/api/questions/:id", requireAdmin, (req, res) => {
 
 app.delete("/api/questions/:id", requireAdmin, (req, res) => {
   const id = Number(req.params.id);
+  db.prepare("DELETE FROM submissions WHERE question_id = ?").run(id);
   db.prepare("DELETE FROM questions WHERE id = ?").run(id);
+  res.json({ ok: true });
+  emitState();
+});
+
+app.post("/api/questions/delete_all", requireAdmin, (req, res) => {
+  const { type } = req.body;
+  
+  if (!type || type === "all") {
+    db.prepare("DELETE FROM submissions").run();
+    db.prepare("DELETE FROM questions").run();
+  } else {
+    const questions = db.prepare("SELECT id FROM questions WHERE type = ?").all(type);
+    const ids = questions.map(q => q.id);
+    
+    if (ids.length > 0) {
+      const placeholders = ids.map(() => '?').join(',');
+      db.prepare(`DELETE FROM submissions WHERE question_id IN (${placeholders})`).run(...ids);
+      db.prepare("DELETE FROM questions WHERE type = ?").run(type);
+    }
+  }
+  
+  const state = getGameState();
+  if (state.current_question_id) {
+    const q = db.prepare("SELECT id FROM questions WHERE id = ?").get(state.current_question_id);
+    if (!q) {
+      db.prepare("UPDATE game_state SET current_question_id = NULL, is_open = 0, opened_at = NULL, reveal_answer = 0").run();
+    }
+  }
+  
   res.json({ ok: true });
   emitState();
 });

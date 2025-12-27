@@ -62,6 +62,7 @@ const teamName = document.getElementById("teamName");
 const createTeam = document.getElementById("createTeam");
 const deleteAllTeams = document.getElementById("deleteAllTeams");
 const teamList = document.getElementById("teamList");
+const deleteAllQuestions = document.getElementById("deleteAllQuestions");
 
 const currentQuestion = document.getElementById("currentQuestion");
 const currentQuestionSelect = document.getElementById("currentQuestionSelect");
@@ -1117,8 +1118,65 @@ resetSubmissions.addEventListener("click", async () => {
   await refreshSubmissions();
 });
 
+if (deleteAllQuestions) {
+  deleteAllQuestions.addEventListener("click", async () => {
+    const typeLabel = activeQuestionFilter === "all" ? "ALL questions" : 
+                      `all ${activeQuestionFilter.replace('_', ' ')} questions`;
+    
+    if (confirm(`Are you sure you want to delete ${typeLabel}? This cannot be undone!`)) {
+      try {
+        await api("/api/questions/delete_all", { 
+          method: "POST",
+          body: JSON.stringify({ type: activeQuestionFilter })
+        });
+        await loadQuestions();
+      } catch (error) {
+        console.error("Error deleting questions:", error);
+        alert("Failed to delete questions");
+      }
+    }
+  });
+}
+
 async function loadQuestions() {
   const allQuestions = await api("/api/questions");
+
+  // Calculate counts
+  const counts = {
+    all: allQuestions.length,
+    text: 0,
+    multiple_choice: 0,
+    rebus_puzzle: 0,
+    movie_title: 0
+  };
+  
+  allQuestions.forEach(q => {
+    if (counts[q.type] !== undefined) {
+      counts[q.type]++;
+    }
+  });
+  
+  // Update badges
+  if (questionTypeTabs) {
+    questionTypeTabs.querySelectorAll("button[data-qtype]").forEach(btn => {
+      const type = btn.getAttribute("data-qtype");
+      const badge = btn.querySelector(".count-badge");
+      if (badge) {
+        badge.textContent = `(${counts[type] || 0})`;
+      }
+    });
+  }
+
+  // Update Delete All button text
+  if (deleteAllQuestions) {
+    const typeLabel = activeQuestionFilter === "all" ? "Questions" : 
+                      activeQuestionFilter === "text" ? "Text Questions" :
+                      activeQuestionFilter === "multiple_choice" ? "Multiple Choice Questions" :
+                      activeQuestionFilter === "rebus_puzzle" ? "Rebus Puzzles" :
+                      activeQuestionFilter === "movie_title" ? "Movie Titles" : "Questions";
+    deleteAllQuestions.textContent = `Delete All ${typeLabel}`;
+  }
+
   const questions = activeQuestionFilter === "all" 
     ? allQuestions 
     : allQuestions.filter(q => q.type === activeQuestionFilter);
@@ -1202,9 +1260,22 @@ async function loadQuestions() {
   // Display only filtered questions in the table
   questions.forEach((q) => {
     const row = document.createElement("tr");
+    
+    // Create prompt display based on type
+    let promptDisplay;
+    if ((q.type === "rebus_puzzle" || q.type === "movie_title") && (q.rebus_image_url || q.prompt.startsWith("data:image/"))) {
+      const imageUrl = q.rebus_image_url || q.prompt;
+      const label = q.type === "movie_title" ? "Movie Puzzle" : "Rebus Puzzle";
+      promptDisplay = `<img src="${imageUrl}" alt="${label}" style="max-width: 100px; max-height: 60px; border-radius: 4px;" />`;
+    } else if (q.prompt.length > 50) {
+      promptDisplay = q.prompt.slice(0, 50) + "...";
+    } else {
+      promptDisplay = q.prompt;
+    }
+    
     row.innerHTML = `
       <td>${q.id}</td>
-      <td>${q.prompt}</td>
+      <td>${promptDisplay}</td>
       <td>${q.type}</td>
       <td>${q.points}</td>
       <td>
