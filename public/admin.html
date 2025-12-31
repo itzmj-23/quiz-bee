@@ -30,6 +30,7 @@
           <button class="tab-btn" data-tab="questions">Questions</button>
           <button class="tab-btn" data-tab="teams">Teams</button>
           <button class="tab-btn" data-tab="rankings">Rankings</button>
+          <button class="tab-btn" data-tab="submissions">Submissions</button>
         </div>
       </div>
 
@@ -364,6 +365,30 @@
               <tbody id="fastestBody"></tbody>
             </table>
           </div>
+        </div>
+      </section>
+      <section class="tab-panel" id="tab-submissions">
+        <div class="card">
+          <div class="flex-row" style="justify-content: space-between; align-items: center;">
+            <h2>All Submissions</h2>
+            <div class="flex-row">
+                <button id="refreshSubmissions" class="secondary">Refresh</button>
+                <button id="clearAllSubmissions" class="danger">Clear All</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Team</th>
+                <th>Question</th>
+                <th>Answer</th>
+                <th>Correct</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allSubmissionsBody"></tbody>
+          </table>
         </div>
       </section>
     </div>

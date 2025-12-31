@@ -955,6 +955,43 @@ app.post("/api/settings", requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+app.get("/api/all_submissions", requireAdmin, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT s.*, t.name as team_name, q.prompt as question_prompt
+      FROM submissions s
+      LEFT JOIN teams t ON s.team_id = t.id
+      LEFT JOIN questions q ON s.question_id = q.id
+      ORDER BY s.submitted_at DESC
+    `).all();
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch submissions" });
+  }
+});
+
+app.delete("/api/submission/:id", requireAdmin, (req, res) => {
+  try {
+    const { id } = req.params;
+    db.prepare("DELETE FROM submissions WHERE id = ?").run(id);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete submission" });
+  }
+});
+
+app.delete("/api/all_submissions", requireAdmin, (req, res) => {
+  try {
+    db.prepare("DELETE FROM submissions").run();
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to clear submissions" });
+  }
+});
+
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
   socket.emit("state_update", buildStatePayload());

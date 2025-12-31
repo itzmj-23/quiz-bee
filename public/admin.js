@@ -63,6 +63,9 @@ const createTeam = document.getElementById("createTeam");
 const deleteAllTeams = document.getElementById("deleteAllTeams");
 const teamList = document.getElementById("teamList");
 const deleteAllQuestions = document.getElementById("deleteAllQuestions");
+const refreshSubmissionsBtn = document.getElementById("refreshSubmissions");
+const clearAllSubmissions = document.getElementById("clearAllSubmissions");
+const allSubmissionsBody = document.getElementById("allSubmissionsBody");
 
 const currentQuestion = document.getElementById("currentQuestion");
 const currentQuestionSelect = document.getElementById("currentQuestionSelect");
@@ -173,6 +176,9 @@ function setActiveTab(tabName) {
   document.querySelectorAll(".tab-panel").forEach((panel) => {
     panel.classList.toggle("active", panel.id === `tab-${tabName}`);
   });
+  if (tabName === "submissions") {
+    loadAllSubmissions();
+  }
 }
 
 if (adminTabs) {
@@ -1609,3 +1615,65 @@ socket.on("submission_received", () => {
 });
 
 loadAll();
+
+async function loadAllSubmissions() {
+  if (!allSubmissionsBody) return;
+  allSubmissionsBody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+  try {
+    const submissions = await api("/api/all_submissions");
+    
+    allSubmissionsBody.innerHTML = "";
+    if (submissions.length === 0) {
+      allSubmissionsBody.innerHTML = "<tr><td colspan='6'>No submissions found.</td></tr>";
+      return;
+    }
+
+    submissions.forEach(sub => {
+      const row = document.createElement("tr");
+      const date = new Date(sub.submitted_at).toLocaleTimeString();
+      row.innerHTML = `
+        <td>${date}</td>
+        <td>${sub.team_name || "Unknown Team"}</td>
+        <td>${sub.question_prompt || "Unknown Question"}</td>
+        <td>${sub.answer}</td>
+        <td>${sub.is_correct ? "✅" : (sub.is_correct === 0 ? "❌" : "Pending")}</td>
+        <td>
+          <button class="danger small" onclick="deleteSubmission(${sub.id})">Delete</button>
+        </td>
+      `;
+      allSubmissionsBody.appendChild(row);
+    });
+  } catch (err) {
+    console.error(err);
+    allSubmissionsBody.innerHTML = "<tr><td colspan='6'>Error loading submissions.</td></tr>";
+  }
+}
+
+async function deleteSubmission(id) {
+  if (!confirm("Delete this submission?")) return;
+  try {
+    await api(`/api/submission/${id}`, { method: "DELETE" });
+    loadAllSubmissions();
+  } catch (err) {
+    alert("Failed to delete submission");
+  }
+}
+
+if (refreshSubmissionsBtn) {
+  refreshSubmissionsBtn.addEventListener("click", loadAllSubmissions);
+}
+
+if (clearAllSubmissions) {
+  clearAllSubmissions.addEventListener("click", async () => {
+    if (!confirm("Are you sure you want to delete ALL submissions? This cannot be undone.")) return;
+    try {
+      await api("/api/all_submissions", { method: "DELETE" });
+      loadAllSubmissions();
+    } catch (err) {
+      alert("Failed to clear submissions");
+    }
+  });
+}
+
+window.deleteSubmission = deleteSubmission;
+
